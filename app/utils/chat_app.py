@@ -28,11 +28,14 @@ class ChatApp:
         # Initialize authentication
         self.auth = UserAuth()
 
-        # Check if user is logged in
-        if 'authentication_status' not in st.session_state:
-            st.session_state.authentication_status = None
-        if 'username' not in st.session_state:
-            st.session_state.username = None
+        # # Check if user is logged in
+        # if 'authentication_status' not in st.session_state:
+        #     st.session_state.authentication_status = None
+        # if 'username' not in st.session_state:
+        #     st.session_state.username = None
+        
+        st.session_state["authentication_status"] = True
+        st.session_state["username"] = "admin"
 
     # def _reset_session_dirs_and_state(self):
     #     """Clean session state and temporary directories."""
@@ -72,7 +75,7 @@ class ChatApp:
 
     def render_main_app(self):
         """Render main application for authenticated users"""
-        username = st.session_state.username
+        username = "admin"  # st.session_state.username
 
         # Kiểm tra và hiển thị thông báo upload thành công
         upload_success_key = f'upload_success_{username}'
@@ -96,8 +99,8 @@ class ChatApp:
             st.title(f"📚 VSAT Chatbot")
             st.write(f"Welcome back, **{username}**!")
 
-        with col2:
-            self.auth.logout()
+        # with col2:
+        #     self.auth.logout()
 
         # Ensure user directories exist
         user_dirs = get_user_dirs(username)
@@ -269,7 +272,8 @@ class ChatApp:
 
     def run(self):
         """Main application runner"""
-        if st.session_state.authentication_status == True:
+        # if st.session_state.authentication_status == True:
+        if True:
             self.render_main_app()
         else:
             self.render_login_page()
