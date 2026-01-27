@@ -261,7 +261,7 @@ def get_vectorstore(
 # --- User-specific Constants ---
 def get_user_dirs(username: str):
     """Get user-specific directory paths"""
-    user_base = f"users/{username}"
+    user_base = f"data/kb/{username}"
     return {
         'docs': f"{user_base}/docs",
         'chunks': f"{user_base}/chunks",
@@ -360,7 +360,7 @@ def get_vectorstore_user(
 
 def cleanup_user_data(username: str):
     """Clean up all user data"""
-    user_base = f"users/{username}"
+    user_base = f"data/kb/{username}"
     if os.path.exists(user_base):
         shutil.rmtree(user_base)
         st.success(f"🗑️ Cleaned up all data for user: {username}")
