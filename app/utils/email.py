@@ -8,7 +8,7 @@ import time
 from dotenv import load_dotenv
 from jinja2 import Template
 
-from utils.db import (
+from utils.db_crud import (
     get_overdue_incidents,
     mark_incident_notified,
 )

@@ -1,6 +1,6 @@
 import streamlit as st
-from utils.db import (
-    create_all_tables,
+from utils.db_orm import create_all_tables
+from utils.db_crud import (
     list_incidents,
     create_incident,
     get_incident_by_id,
@@ -16,7 +16,7 @@ st.set_page_config(
 st.title("Incident Report")
 
 create_all_tables()
-start_periodic_notifier()
+# start_periodic_notifier()
 
 # State for dialog
 if "show_dialog" not in st.session_state:
