@@ -210,9 +210,10 @@ class ChatApp:
         if user_vectordb_key in st.session_state:
             chat_history_key = f'chat_history_{username}'
             
-            # Load chat history from database if not already in session
-            if chat_history_key not in st.session_state:
-                st.session_state[chat_history_key] = load_chat_history_from_db(username)
+            # # Load chat history from database if not already in session
+            loaded_chat_history = load_chat_history_from_db(username)
+            # if chat_history_key not in st.session_state:
+            st.session_state[chat_history_key] = loaded_chat_history
 
             st.session_state[chat_history_key] = chat(
                 st.session_state[chat_history_key],

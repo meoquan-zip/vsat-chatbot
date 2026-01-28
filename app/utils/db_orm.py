@@ -7,6 +7,7 @@ import uuid
 
 from dotenv import load_dotenv
 from sqlalchemy import (
+    Boolean,
     create_engine,
     DateTime,
     func,
@@ -47,7 +48,7 @@ class ChatMessage(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     username: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[str] = mapped_column(String(20), nullable=False)  # "user" or "ai"
+    is_human: Mapped[bool] = mapped_column(Boolean, nullable=False)
     message: Mapped[str] = mapped_column(String, nullable=False)
     timestamp: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=False, server_default=func.now())
 

@@ -7,7 +7,7 @@ from utils.db_crud import (
     resolve_incident,
     delete_incident,
 )
-from utils.email import start_periodic_notifier
+# from utils.email import start_periodic_notifier
 
 st.set_page_config(
     page_title="Incident Report - VSAT App",

@@ -68,10 +68,10 @@ def load_chat_history_from_db(username: str) -> List:
     chat_history = []
     
     for msg in db_messages:
-        if msg.username is None or msg.username.lower() == 'ai':
-            chat_history.append(AIMessage(content=msg.message))
-        else:
+        if msg.is_human:
             chat_history.append(HumanMessage(content=msg.message))
+        else:
+            chat_history.append(AIMessage(content=msg.message))
     
     return chat_history
 
@@ -157,9 +157,17 @@ def chat(chat_history, vectordb, username: str = None):
 
         if username:
             # Save user message to database
-            log_chat_message(username, "user", user_query)
+            log_chat_message(
+                username=username,
+                is_human=True,
+                message=user_query
+            )
             # Save AI response to database
-            log_chat_message(username, "ai", final_response)
+            log_chat_message(
+                username=username,
+                is_human=False,
+                message=final_response
+            )
         
         # Update chat_history with both user and AI messages
         chat_history = chat_history + [

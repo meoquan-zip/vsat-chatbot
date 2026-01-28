@@ -89,12 +89,12 @@ def mark_incident_notified(incident_id: str,
 
 
 def log_chat_message(username: str,
-                     role: str,
+                     is_human: bool,
                      message: str,
                      session: Session = get_session()) -> ChatMessage:
     chat_message = ChatMessage(
         username=username,
-        role=role,
+        is_human=is_human,
         message=message,
     )
     session.add(chat_message)
@@ -107,9 +107,13 @@ def get_user_last_n_messages(username: str,
                              n: int = 40,
                              session: Session = get_session()) -> List[ChatMessage]:
     """Get last N chat messages for a specific user"""
-    return session.query(ChatMessage).filter(
+    messages = session.query(ChatMessage).filter(
         ChatMessage.username == username
-    ).order_by(ChatMessage.timestamp.desc()).limit(n).all()[::-1]
+    ).order_by(
+        ChatMessage.timestamp.desc(),  # latest messages first
+        ChatMessage.is_human.asc()  # AI message, then human message if same timestamp
+    ).limit(n).all()
+    return list(reversed(messages))  # return in chronological order
 
 
 def clear_user_chat_history(username: str,
