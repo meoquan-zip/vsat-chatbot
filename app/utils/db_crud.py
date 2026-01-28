@@ -41,11 +41,13 @@ def create_incident(name: str,
 
 
 def resolve_incident(incident_id: str,
+                     solution: str,
                      session: Session = get_session()) -> Optional[Incident]:
     incident = get_incident_by_id(incident_id, session)
     if incident is None:
         return None
     incident.status = "resolved"
+    incident.solution = solution
     session.commit()
     session.refresh(incident)
     return incident

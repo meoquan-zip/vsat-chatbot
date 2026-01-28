@@ -87,10 +87,28 @@ else:
                     st.rerun()
             with col_b:
                 if incident.status != "resolved":
-                    if st.button("Mark as resolved", key=f"resolve_{incident.id}"):
-                        resolve_incident(incident.id)
-                        st.success("Incident resolved.")
-                        st.rerun()
+                    solution_key = f"solution_input_{incident.id}"
+                    if f"show_solution_{incident.id}" not in st.session_state:
+                        st.session_state[f"show_solution_{incident.id}"] = False
+                    if st.session_state[f"show_solution_{incident.id}"]:
+                        solution = st.text_area("Enter solution:", key=solution_key)
+                        submit_solution = st.button("Submit Solution", key=f"submit_solution_{incident.id}")
+                        cancel_solution = st.button("Cancel", key=f"cancel_solution_{incident.id}")
+                        if submit_solution:
+                            if not solution.strip():
+                                st.warning("Solution cannot be empty.")
+                            else:
+                                resolve_incident(incident.id, solution)
+                                st.success("Incident resolved.")
+                                st.session_state[f"show_solution_{incident.id}"] = False
+                                st.rerun()
+                        if cancel_solution:
+                            st.session_state[f"show_solution_{incident.id}"] = False
+                            st.rerun()
+                    else:
+                        if st.button("Mark as resolved", key=f"resolve_{incident.id}"):
+                            st.session_state[f"show_solution_{incident.id}"] = True
+                            st.rerun()
             with col_c:
                 if st.button("Delete", key=f"delete_{incident.id}"):
                     delete_incident(incident.id)
@@ -115,11 +133,32 @@ if st.session_state["selected_incident_id"]:
         st.sidebar.write(f"**Notified:** {'Yes' if incident.notified else 'No'}")
         st.sidebar.write(f"**Created At:** {incident.created_at}")
         st.sidebar.write(f"**Updated At:** {incident.updated_at}")
+        if incident.solution:
+            st.sidebar.markdown("**Solution:**")
+            st.sidebar.write(incident.solution)
         if incident.status != "resolved":
-            if st.sidebar.button("Mark as resolved", key="sidebar_resolve"):
-                resolve_incident(incident.id)
-                st.sidebar.success("Incident resolved.")
-                st.rerun()
+            sidebar_solution_key = f"sidebar_solution_input_{incident.id}"
+            if f"sidebar_show_solution_{incident.id}" not in st.session_state:
+                st.session_state[f"sidebar_show_solution_{incident.id}"] = False
+            if st.session_state[f"sidebar_show_solution_{incident.id}"]:
+                sidebar_solution = st.sidebar.text_area("Enter solution:", key=sidebar_solution_key)
+                sidebar_submit_solution = st.sidebar.button("Submit Solution", key=f"sidebar_submit_solution_{incident.id}")
+                sidebar_cancel_solution = st.sidebar.button("Cancel", key=f"sidebar_cancel_solution_{incident.id}")
+                if sidebar_submit_solution:
+                    if not sidebar_solution.strip():
+                        st.sidebar.warning("Solution cannot be empty.")
+                    else:
+                        resolve_incident(incident.id, sidebar_solution)
+                        st.sidebar.success("Incident resolved.")
+                        st.session_state[f"sidebar_show_solution_{incident.id}"] = False
+                        st.rerun()
+                if sidebar_cancel_solution:
+                    st.session_state[f"sidebar_show_solution_{incident.id}"] = False
+                    st.rerun()
+            else:
+                if st.sidebar.button("Mark as resolved", key="sidebar_resolve"):
+                    st.session_state[f"sidebar_show_solution_{incident.id}"] = True
+                    st.rerun()
         if st.sidebar.button("Delete Incident", key="sidebar_delete"):
             delete_incident(incident.id)
             st.sidebar.warning("Incident deleted.")

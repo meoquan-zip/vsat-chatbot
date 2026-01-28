@@ -38,6 +38,7 @@ class Incident(Base):
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="open")  # "open" or "resolved"
     notified: Mapped[bool] = mapped_column(nullable=False, default=False)
+    solution: Mapped[Optional[str]] = mapped_column(String)
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=False, server_default=func.now())
     # created_by: Mapped[Optional[str]] = mapped_column(String(255))
     updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
