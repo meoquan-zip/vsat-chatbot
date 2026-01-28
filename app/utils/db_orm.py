@@ -46,7 +46,8 @@ class ChatMessage(Base):
     __tablename__ = "chat_history"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    username: Mapped[str] = mapped_column(String(255))  # null for AI
+    username: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), nullable=False)  # "user" or "ai"
     message: Mapped[str] = mapped_column(String, nullable=False)
     timestamp: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=False, server_default=func.now())
 

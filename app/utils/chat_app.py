@@ -4,7 +4,8 @@ import os
 import streamlit as st
 
 from utils.auth import UserAuth
-from utils.chatbot import chat
+from utils.chatbot import chat, load_chat_history_from_db
+from utils.db_orm import create_all_tables
 from utils.prepare_vectordb import (
     get_vectorstore_user,
     has_new_files_user,
@@ -24,6 +25,9 @@ class ChatApp:
     def __init__(self):
         st.set_page_config(page_title="VSAT Chatbot")
         # st.title("VSAT Chatbot")
+
+        # Initialize database tables
+        create_all_tables()
 
         # Initialize authentication
         self.auth = UserAuth()
@@ -205,12 +209,15 @@ class ChatApp:
         # Chat interface
         if user_vectordb_key in st.session_state:
             chat_history_key = f'chat_history_{username}'
+            
+            # Load chat history from database if not already in session
             if chat_history_key not in st.session_state:
-                st.session_state[chat_history_key] = []
+                st.session_state[chat_history_key] = load_chat_history_from_db(username)
 
             st.session_state[chat_history_key] = chat(
                 st.session_state[chat_history_key],
-                st.session_state[user_vectordb_key]
+                st.session_state[user_vectordb_key],
+                username=username
             )
         else:
             st.info("Upload documents or enter URLs to begin chatting.")

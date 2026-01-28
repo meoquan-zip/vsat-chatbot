@@ -2,8 +2,8 @@
 
 import os
 import streamlit as st
-from collections import defaultdict
 from dotenv import load_dotenv
+from typing import List
 
 # from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -12,6 +12,8 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.outputs import ChatGenerationChunk
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
+
+from utils.db_crud import log_chat_message, get_user_last_n_messages
 
 
 def get_context_retriever_chain(vectordb, callbacks=None):
@@ -58,7 +60,22 @@ def get_response(question, chat_history, vectordb):
     # Fix key access for documents
     return response.get("answer") or response.get("result"), response.get("context") or response.get("source_documents")
 
-def chat(chat_history, vectordb):
+def load_chat_history_from_db(username: str) -> List:
+    """
+    Load chat history from database and convert to LangChain message objects.
+    """
+    db_messages = get_user_last_n_messages(username)
+    chat_history = []
+    
+    for msg in db_messages:
+        if msg.username is None or msg.username.lower() == 'ai':
+            chat_history.append(AIMessage(content=msg.message))
+        else:
+            chat_history.append(HumanMessage(content=msg.message))
+    
+    return chat_history
+
+def chat(chat_history, vectordb, username: str = None):
     """
     Main Streamlit chat interface using GPT-4o-mini and vector context.
     """
@@ -138,6 +155,12 @@ def chat(chat_history, vectordb):
                     yield content
             st.write_stream(stream_response)
 
+        if username:
+            # Save user message to database
+            log_chat_message(username, "user", user_query)
+            # Save AI response to database
+            log_chat_message(username, "ai", final_response)
+        
         # Update chat_history with both user and AI messages
         chat_history = chat_history + [
             HumanMessage(content=user_query),

@@ -88,11 +88,13 @@ def mark_incident_notified(incident_id: str,
 # =========================ChatMessage=========================
 
 
-def log_chat_message(username: Optional[str],
+def log_chat_message(username: str,
+                     role: str,
                      message: str,
                      session: Session = get_session()) -> ChatMessage:
     chat_message = ChatMessage(
         username=username,
+        role=role,
         message=message,
     )
     session.add(chat_message)
@@ -101,6 +103,20 @@ def log_chat_message(username: Optional[str],
     return chat_message
 
 
-def get_last_n_messages(n: int = 20,
-                        session: Session = get_session()) -> List[ChatMessage]:
-    return session.query(ChatMessage).order_by(ChatMessage.timestamp.desc()).limit(n).all()[::-1]
+def get_user_last_n_messages(username: str,
+                             n: int = 40,
+                             session: Session = get_session()) -> List[ChatMessage]:
+    """Get last N chat messages for a specific user"""
+    return session.query(ChatMessage).filter(
+        ChatMessage.username == username
+    ).order_by(ChatMessage.timestamp.desc()).limit(n).all()[::-1]
+
+
+def clear_user_chat_history(username: str,
+                            session: Session = get_session()) -> int:
+    """Delete all chat messages for a specific user"""
+    deleted = session.query(ChatMessage).filter(
+        ChatMessage.username == username
+    ).delete()
+    session.commit()
+    return deleted
