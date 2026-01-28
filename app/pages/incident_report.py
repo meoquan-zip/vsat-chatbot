@@ -8,7 +8,10 @@ from utils.db_crud import (
     delete_incident,
 )
 # from utils.email import start_periodic_notifier
-from utils.prepare_vectordb import add_resolved_incident_to_vectordb
+from utils.prepare_vectordb import (
+    add_resolved_incident_to_vectordb,
+    delete_incident_from_vectordb,
+)
 
 st.set_page_config(
     page_title="Incident Report - VSAT App",
@@ -118,6 +121,11 @@ else:
             with col_c:
                 if st.button("Delete", key=f"delete_{incident.id}"):
                     delete_incident(incident.id)
+                    delete_incident_from_vectordb(
+                        # todo: get actual username
+                        username="admin",
+                        incident_id=incident.id
+                    )
                     st.warning("Incident deleted.")
                     st.rerun()
 
@@ -172,6 +180,11 @@ if st.session_state["selected_incident_id"]:
                     st.rerun()
         if st.sidebar.button("Delete Incident", key="sidebar_delete"):
             delete_incident(incident.id)
+            delete_incident_from_vectordb(
+                # todo: get actual username
+                username="admin",
+                incident_id=incident.id
+            )
             st.sidebar.warning("Incident deleted.")
             st.session_state["selected_incident_id"] = None
             st.rerun()

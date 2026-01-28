@@ -391,7 +391,7 @@ def cleanup_user_data(username: str):
 def add_resolved_incident_to_vectordb(
     username: str,
     incident: Incident,
-) -> List[str]:
+) -> str:
     """Add resolved incident details to user's vectorstore"""
     _ = ensure_user_dirs(username)
 
@@ -403,14 +403,28 @@ def add_resolved_incident_to_vectordb(
         f"Description: {incident.description}",
         f"Solution: {incident.solution}",
     ])
-    doc = Document(page_content=content, metadata={"source": f"incident_{incident.id}"})
+    incident_id = f"incident_{incident.id}"
+    doc = Document(page_content=content, metadata={"source": incident_id})
 
     # Lấy vectorstore của user
     vectordb = get_vectorstore_user(username)
 
     # Thêm document vào vectordb
-    ids = vectordb.add_documents([doc])
+    vectordb.add_documents([doc], ids=[incident_id])
     vectordb.persist()
 
     st.success(f"✅ Added resolved incident '{incident.name}' to vectorstore for user: {username}")
-    return ids
+    return incident_id
+
+def delete_incident_from_vectordb(
+    username: str,
+    incident_id: str,
+) -> None:
+    """Delete incident document from user's vectorstore"""
+    vectordb = get_vectorstore_user(username)
+
+    if not incident_id.startswith("incident_"):
+        incident_id = f"incident_{incident_id}"
+
+    vectordb.delete(ids=[incident_id])
+    vectordb.persist()
