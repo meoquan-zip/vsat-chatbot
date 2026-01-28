@@ -42,6 +42,15 @@ class Incident(Base):
     updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
 
+class ChatMessage(Base):
+    __tablename__ = "chat_history"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    username: Mapped[str] = mapped_column(String(255))  # null for AI
+    message: Mapped[str] = mapped_column(String, nullable=False)
+    timestamp: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=False, server_default=func.now())
+
+
 @lru_cache()
 def get_engine(connection_url: str = None) -> Engine:
     if connection_url is None:

@@ -7,9 +7,12 @@ from sqlalchemy.orm import Session
 from utils.db_orm import (
     get_session,
     Incident,
+    ChatMessage,
 )
 
+
 # =========================Incident=========================
+
 
 def list_incidents(session: Session = get_session()) -> List[Incident]:
     return session.query(Incident).all()
@@ -80,3 +83,24 @@ def mark_incident_notified(incident_id: str,
     session.commit()
     session.refresh(incident)
     return incident
+
+
+# =========================ChatMessage=========================
+
+
+def log_chat_message(username: Optional[str],
+                     message: str,
+                     session: Session = get_session()) -> ChatMessage:
+    chat_message = ChatMessage(
+        username=username,
+        message=message,
+    )
+    session.add(chat_message)
+    session.commit()
+    session.refresh(chat_message)
+    return chat_message
+
+
+def get_last_n_messages(n: int = 20,
+                        session: Session = get_session()) -> List[ChatMessage]:
+    return session.query(ChatMessage).order_by(ChatMessage.timestamp.desc()).limit(n).all()[::-1]
