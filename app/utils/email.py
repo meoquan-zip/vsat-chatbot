@@ -19,14 +19,14 @@ load_dotenv()
 
 
 def render_incident_email(incident: Incident) -> str:
-    template_str = """
-    Unresolved Incident\n\n
-    ID: {{ incident.id }}\n
-    Name: {{ incident.name }}\n
-    Description: {{ incident.description }}\n
-    Log: {{ incident.log or 'N/A' }}\n
-    Created at: {{ incident.created_at }}\n
-    """
+    template_str = (
+        "Unresolved Incident\n\n"
+        "ID: {{ incident.id }}\n"
+        "Name: {{ incident.name }}\n"
+        "Description: {{ incident.description }}\n"
+        "Log: {{ incident.log or 'N/A' }}\n"
+        "Created at: {{ incident.created_at }}\n"
+    )
     template = Template(template_str)
     return template.render(incident=incident)
 
