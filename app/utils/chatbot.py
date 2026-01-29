@@ -40,8 +40,19 @@ from utils.db_crud import log_chat_message, get_user_last_n_messages
 
 #     retriever = vectordb.as_retriever()
 
+#     system_instruction = (
+#         "You are a chatbot. You'll receive a prompt that includes a chat "
+#         "history and retrieved content from the vector DB based on the "
+#         "user's question. Your task is to respond to the user's question "
+#         "using the information from the vector DB, relying as little as "
+#         "possible on your own knowledge. If for some reason you don't "
+#         "know the answer for the question, or the question cannot be "
+#         "answered because there's no context, ask the user for more "
+#         "details. Do not invent an answer, or mention about the knowledge "
+#         "base. Answer the questions from this context: {context}"
+#     )
 #     prompt = ChatPromptTemplate.from_messages([
-#         ("system", "You are a chatbot. You'll receive a prompt that includes a chat history and retrieved content from the vectorDB based on the user's question. Your task is to respond to the user's question using the information from the vectordb, relying as little as possible on your own knowledge. If for some reason you don't know the answer for the question, or the question cannot be answered because there's no context, ask the user for more details. Do not invent an answer, or mention about the knowledge base. Answer the questions from this context: {context}"),
+#         ("system", system_instruction),
 #         MessagesPlaceholder(variable_name="chat_history"),
 #         ("human", "{input}")
 #     ])
@@ -128,8 +139,19 @@ def chat(chat_history, vectordb, username: str = None):
 
         retriever = vectordb.as_retriever()
 
+        system_instruction = (
+            "You are a chatbot. You'll receive a prompt that includes a chat "
+            "history and retrieved content from the vector DB based on the "
+            "user's question. Your task is to respond to the user's question "
+            "using the information from the vector DB, relying as little as "
+            "possible on your own knowledge. If for some reason you don't "
+            "know the answer for the question, or the question cannot be "
+            "answered because there's no context, ask the user for more "
+            "details. Do not invent an answer, or mention about the knowledge "
+            "base. Answer the questions from this context: {context}"
+        )
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a chatbot. You'll receive a prompt that includes a chat history and retrieved content from the vectorDB based on the user's question. Your task is to respond to the user's question using the information from the vectordb, relying as little as possible on your own knowledge. If for some reason you don't know the answer for the question, or the question cannot be answered because there's no context, ask the user for more details. Do not invent an answer, or mention about the knowledge base. Answer the questions from this context: {context}"),
+            ("system", system_instruction),
             MessagesPlaceholder(variable_name="chat_history"),
             ("human", "{input}")
         ])
