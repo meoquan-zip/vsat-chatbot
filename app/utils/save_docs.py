@@ -60,31 +60,50 @@ def get_user_documents(username: str):
 
 def delete_user_document(username: str, filename: str):
     """Delete specific document for user and update cache"""
-    from .prepare_vectordb import get_user_dirs
+    from .prepare_vectordb import get_user_dirs, get_vectorstore_user
 
     dirs = get_user_dirs(username)
     file_path = os.path.join(dirs['docs'], filename)
     cache_path = os.path.join(dirs['vectordb'], "files.txt")
 
-    if os.path.exists(file_path):
-        # 1. Xóa file vật lý
-        os.remove(file_path)
+    if not os.path.exists(file_path):
+        return False
 
-        # 2. Cập nhật file cache (loại bỏ filename khỏi danh sách)
-        if os.path.exists(cache_path):
-            with open(cache_path, "r", encoding="utf-8") as f:
-                cached_files = [line.strip() for line in f.readlines()]
+    # 1) Delete physical file
+    os.remove(file_path)
 
-            # Loại bỏ filename khỏi cache
-            updated_files = [f for f in cached_files if f != filename]
+    # 2) Remove vectors tied to this file using stored IDs
+    vectordb = get_vectorstore_user(username)
+    ids_to_delete = []
+    remaining_lines = []
 
-            with open(cache_path, "w", encoding="utf-8") as f:
-                for file in updated_files:
-                    f.write(file + "\n")
+    if os.path.exists(cache_path):
+        with open(cache_path, "r", encoding="utf-8") as f:
+            for line in f:
+                raw = line.strip()
+                if not raw:
+                    continue
+                if "\\" in raw:
+                    fname, ids_part = raw.split("\\", 1)
+                    ids = [i for i in ids_part.split("/") if i]
+                else:
+                    fname, ids = raw, []
 
-        st.success(f"🗑️ Deleted {filename} for user {username}")
-        return True
-    return False
+                if fname == filename:
+                    ids_to_delete = ids
+                    continue  # skip writing this entry back
+                remaining_lines.append(raw)
+
+        with open(cache_path, "w", encoding="utf-8") as f:
+            for line in remaining_lines:
+                f.write(line + "\n")
+
+    if ids_to_delete:
+        vectordb.delete(ids=ids_to_delete)
+        vectordb.persist()
+
+    st.success(f"🗑️ Deleted {filename} for user {username}")
+    return True
 
 
 # def save_docs_to_vectordb(uploaded_docs, existing_docs):

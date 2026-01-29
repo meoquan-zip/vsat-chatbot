@@ -5,7 +5,9 @@ nest_asyncio.apply()
 
 import os
 import shutil
-from typing import List
+import uuid
+from collections import defaultdict
+from typing import List, Tuple
 import streamlit as st
 import hashlib
 import pandas as pd
@@ -38,6 +40,23 @@ CHUNK_OVERLAP       = 800
 
 # Load your .env (must contain OPENAI_API_KEY)
 load_dotenv()
+
+
+def _parse_cache_line(line: str) -> Tuple[str, List[str]]:
+    """Return filename and list of vector IDs from a cache line."""
+    raw = line.strip()
+    if not raw:
+        return "", []
+    if "\\" in raw:
+        fname, ids_part = raw.split("\\", 1)
+        ids = [i for i in ids_part.split("/") if i]
+        return fname, ids
+    return raw, []
+
+
+def _format_cache_line(filename: str, ids: List[str]) -> str:
+    """Format cache line as filename\\id1/id2/...; falls back to filename only."""
+    return f"{filename}\\{'/'.join(ids)}" if ids else filename
 
 # def has_new_files(persist_dir: str, current_files: List[str]) -> bool:
 #     cache_path = os.path.join(persist_dir, "files.txt")
@@ -286,7 +305,7 @@ def has_new_files_user(username: str, current_files: List[str]) -> bool:
         return True
 
     with open(cache_path, "r", encoding="utf-8") as f:
-        cached_files = set(line.strip() for line in f.readlines())
+        cached_files = set(_parse_cache_line(line)[0] for line in f.readlines())
     return set(current_files) != cached_files
 
 def get_vectorstore_user(
@@ -318,7 +337,7 @@ def get_vectorstore_user(
     prev_files = set()
     if os.path.exists(cache_path):
         with open(cache_path, "r", encoding="utf-8") as f:
-            prev_files = set(line.strip() for line in f)
+            prev_files = set(_parse_cache_line(line)[0] for line in f)
 
     # Filter new files
     new_files = [f for f in file_list if f not in prev_files]
@@ -334,6 +353,7 @@ def get_vectorstore_user(
     # Deduplicate by chunk content hash
     seen_hashes = set()
     unique_chunks = []
+    ids_by_file: defaultdict[str, List[str]] = defaultdict(list)
     for chunk in chunks:
         content_hash = hash_text(chunk.page_content)
         if content_hash not in seen_hashes:
@@ -342,10 +362,17 @@ def get_vectorstore_user(
 
     # Add only unique chunks
     if unique_chunks:
-        # this returns a list of IDs of added documents
-        # todo: retrieve and store these IDs so when user deletes a document file,
-        #       we can also delete corresponding vectors from the vectordb
-        vectordb.add_documents(unique_chunks)
+        all_ids: List[str] = []
+
+        # Assign UUIDs per chunk and keep track by source filename
+        for chunk in unique_chunks:
+            src_path = chunk.metadata.get("source", "")
+            fname = os.path.basename(src_path)
+            cid = str(uuid.uuid4())
+            ids_by_file[fname].append(cid)
+            all_ids.append(cid)
+
+        vectordb.add_documents(unique_chunks, ids=all_ids)
         vectordb.persist()
 
         # st.success(f"✅ Added {len(unique_chunks)} unique chunks for {username}")
@@ -356,7 +383,8 @@ def get_vectorstore_user(
     # Update file cache
     with open(cache_path, "a", encoding="utf-8") as f:
         for fname in new_files:
-            f.write(fname + "\n")
+            ids = ids_by_file.get(fname, [])
+            f.write(_format_cache_line(fname, ids) + "\n")
 
     # Save chunks for inspection
     save_text_chunks(unique_chunks, chunks_dir=dirs['chunks'], overwrite=False)
