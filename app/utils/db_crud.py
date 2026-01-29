@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from typing import List
 from typing import Optional
 
@@ -65,17 +64,15 @@ def delete_incident(incident_id: str,
     return True
 
 
-def get_overdue_incidents(sla_time: timedelta = timedelta(minutes=1),
-                          session: Session = get_session()) -> List[Incident]:
-    now = datetime.now()
-    t = now - sla_time
-
-    incidents = session.query(Incident).filter(
-        Incident.status == "open",
-        Incident.notified == False,
-        Incident.created_at <= t
-    ).all()
-    return incidents
+def is_incident_overdue(incident_id: str,
+                        session: Session = get_session()) -> bool:
+    incident = get_incident_by_id(incident_id, session)
+    if incident is None:
+        return False
+    return (
+        incident.status == "open" and
+        incident.notified == False
+    )
 
 
 def mark_incident_notified(incident_id: str,

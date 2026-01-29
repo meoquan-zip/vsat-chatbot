@@ -1,4 +1,5 @@
 import streamlit as st
+
 from utils.db_orm import create_all_tables
 from utils.db_crud import (
     list_incidents,
@@ -7,7 +8,7 @@ from utils.db_crud import (
     resolve_incident,
     delete_incident,
 )
-# from utils.email import start_periodic_notifier
+from utils.email import init_incident_notifier
 from utils.save_docs import (
     add_resolved_incident_to_vectordb,
     delete_incident_from_vectordb,
@@ -50,13 +51,14 @@ if st.session_state["show_dialog"]:
             if missing_fields:
                 st.warning(f"Required field(s) missing: {', '.join(missing_fields)}.")
             else:
-                create_incident(
+                incident = create_incident(
                     name,
                     description,
                     email,
                     log if log else None,
                     sla_no_of_hours
                 )
+                init_incident_notifier(incident)
                 st.success("Incident reported!")
                 st.session_state["show_dialog"] = False
                 st.rerun()
