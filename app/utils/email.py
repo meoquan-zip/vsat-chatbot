@@ -71,24 +71,4 @@ def init_incident_notifier(incident_id: str):
         daemon=True
     )
     thread.start()
-    thread.join()
-
-
-# def notify_overdue_incidents(sla_time: timedelta = timedelta(minutes=1)):
-#     overdue = get_overdue_incidents(sla_time)
-#     for incident in overdue:
-#         try:
-#             body = render_incident_email(incident)
-#             send_incident_email_delay(incident.email, "Incident Notification", body)
-#             mark_incident_notified(incident.id)
-#         except Exception as e:
-#             print(f"Failed to notify incident {incident.id}: {e}")
-
-
-# def start_periodic_notifier(interval_seconds: int = 20):
-#     def run_notifier():
-#         while True:
-#             notify_overdue_incidents()
-#             time.sleep(interval_seconds)
-#     thread = threading.Thread(target=run_notifier, daemon=True)
-#     thread.start()
+    # thread.join()
