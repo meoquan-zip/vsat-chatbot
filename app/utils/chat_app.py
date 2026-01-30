@@ -4,7 +4,7 @@ import os
 import streamlit as st
 
 from .auth import UserAuth
-from .chatbot import chat, load_chat_history_from_db
+from .chatbot import chat_user_prompt, load_chat_history_from_db
 from .prepare_vectordb import (
     cleanup_user_data,
     get_user_dirs,
@@ -212,7 +212,7 @@ class ChatApp:
             # if chat_history_key not in st.session_state:
             st.session_state[chat_history_key] = loaded_chat_history
 
-            st.session_state[chat_history_key] = chat(
+            st.session_state[chat_history_key] = chat_user_prompt(
                 st.session_state[chat_history_key],
                 st.session_state[user_vectordb_key],
                 username=username
