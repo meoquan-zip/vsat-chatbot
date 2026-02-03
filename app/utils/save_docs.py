@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import streamlit as st
 from langchain.docstore.document import Document
@@ -53,7 +54,10 @@ def get_user_documents(username: str):
     docs_dir = dirs['docs']
 
     if os.path.exists(docs_dir):
-        return os.listdir(docs_dir)
+        filenames = os.listdir(docs_dir)
+        if "images" in filenames:
+            filenames.remove("images")  # Exclude images directory
+        return filenames
     return []
 
 
@@ -71,7 +75,12 @@ def delete_user_document(username: str, filename: str):
     # 1) Delete physical file
     os.remove(file_path)
 
-    # 2) Remove vectors tied to this file using stored IDs
+    # 2) Delete image folder
+    img_dir = os.path.join(dirs['docs'], "images", filename)
+    if os.path.exists(img_dir):
+        shutil.rmtree(img_dir)
+
+    # 3) Remove vectors tied to this file using stored IDs
     vectordb = get_vectorstore_user(username)
     ids_to_delete = []
     remaining_lines = []
