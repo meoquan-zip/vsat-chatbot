@@ -27,6 +27,7 @@ from langchain_community.document_loaders import (
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from paddleocr import PaddleOCR
+from spire.doc import Document as SpireDocument, FileFormat
 
 from .db_orm import Incident
 
@@ -214,6 +215,17 @@ def load_text_from_docx_file(filepath: str) -> List[Document]:
     )]
 
 
+def convert_doc2docx(doc_path: str) -> str:
+    """Convert `.doc` file to `.docx` and return new path."""
+    docx_path = os.path.splitext(doc_path)[0] + ".docx"
+    doc = SpireDocument()
+    doc.LoadFromFile(doc_path)
+    doc.SaveToFile(docx_path, FileFormat.Docx2016)
+    doc.Close()
+    os.remove(doc_path)
+    return docx_path
+
+
 def extract_text(file_list: List[str], docs_dir: str = DEFAULT_DOCS_DIR):
     docs = []
     for fn in file_list:
@@ -243,11 +255,13 @@ def extract_text(file_list: List[str], docs_dir: str = DEFAULT_DOCS_DIR):
                 # docs.extend(loaded)
                 docs.extend(load_text_from_docx_file(path))
             elif fn.lower().endswith(".doc"):
-                loaded = UnstructuredWordDocumentLoader(path).load()
-                for d in loaded:
-                    d.metadata["filename"] = os.path.basename(path)
-                    d.metadata.setdefault("img_list", "")
-                docs.extend(loaded)
+                # loaded = UnstructuredWordDocumentLoader(path).load()
+                # for d in loaded:
+                #     d.metadata["filename"] = os.path.basename(path)
+                #     d.metadata.setdefault("img_list", "")
+                # docs.extend(loaded)
+                path = convert_doc2docx(path)
+                docs.extend(load_text_from_docx_file(path))
             elif fn.lower().endswith(".xls") or fn.lower().endswith(".xlsx"):
                 # Excel support for both .xls and .xlsx, with engine selection
                 try:
