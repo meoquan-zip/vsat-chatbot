@@ -40,6 +40,7 @@ class ChatMessage(Base):
     username: Mapped[str] = mapped_column(String(255), nullable=False)
     is_human: Mapped[bool] = mapped_column(Boolean, nullable=False)
     message: Mapped[str] = mapped_column(String, nullable=False)
+    images_json: Mapped[Optional[str]] = mapped_column(String)
     timestamp: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=False, server_default=func.now())
 
 

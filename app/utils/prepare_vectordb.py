@@ -132,7 +132,8 @@ def load_text_from_txt_file(filepath: str) -> List[Document]:
                     page_content=content,
                     metadata={
                         "source": filepath,
-                        "filename": os.path.basename(filepath)
+                        "filename": os.path.basename(filepath),
+                        "img_list": ""
                     }
                 )]
         except (UnicodeDecodeError, LookupError):
@@ -207,7 +208,8 @@ def load_text_from_docx_file(filepath: str) -> List[Document]:
         metadata={
             "source": filepath,
             "filename": basename,
-            "img_paths_json": json.dumps(img_paths)
+            "img_paths_json": json.dumps(img_paths),
+            "img_list": ", ".join(img_paths.keys())
         }
     )]
 
@@ -221,6 +223,7 @@ def extract_text(file_list: List[str], docs_dir: str = DEFAULT_DOCS_DIR):
                 loaded = PyPDFLoader(path).load()
                 for d in loaded:
                     d.metadata["filename"] = os.path.basename(path)
+                    d.metadata.setdefault("img_list", "")
                 all_text = " ".join(doc.page_content for doc in loaded)
                 if not loaded or is_gibberish(all_text):
                     st.warning(f"⚠️ Falling back to PaddleOCR for: {fn}")
@@ -243,6 +246,7 @@ def extract_text(file_list: List[str], docs_dir: str = DEFAULT_DOCS_DIR):
                 loaded = UnstructuredWordDocumentLoader(path).load()
                 for d in loaded:
                     d.metadata["filename"] = os.path.basename(path)
+                    d.metadata.setdefault("img_list", "")
                 docs.extend(loaded)
             elif fn.lower().endswith(".xls") or fn.lower().endswith(".xlsx"):
                 # Excel support for both .xls and .xlsx, with engine selection
@@ -268,13 +272,22 @@ def extract_text(file_list: List[str], docs_dir: str = DEFAULT_DOCS_DIR):
                         page_content=text,
                         metadata={
                             "source": path,
-                            "filename": os.path.basename(path)
+                            "filename": os.path.basename(path),
+                            "img_list": ""
                         }
                     ))
             else:
                 st.warning(f"⚠️ Unsupported file type: {fn}")
         except Exception as e:
             st.error(f"❌ Failed to process {fn}: {e}")
+
+    # Ensure all documents carry required metadata keys for downstream prompts
+    for d in docs:
+        meta = d.metadata or {}
+        meta.setdefault("img_list", "")
+        if "filename" not in meta and meta.get("source"):
+            meta["filename"] = os.path.basename(meta["source"])
+        d.metadata = meta
     return docs
 
 

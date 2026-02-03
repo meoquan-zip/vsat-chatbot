@@ -86,11 +86,13 @@ def mark_incident_notified(incident_id: str,
 def log_chat_message(username: str,
                      is_human: bool,
                      message: str,
+                     images_json: Optional[str] = None,
                      session: Session = get_session()) -> ChatMessage:
     chat_message = ChatMessage(
         username=username,
         is_human=is_human,
         message=message,
+        images_json=images_json,
     )
     session.add(chat_message)
     session.commit()
