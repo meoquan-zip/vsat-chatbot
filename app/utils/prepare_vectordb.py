@@ -1,4 +1,5 @@
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -11,6 +12,8 @@ import fitz  # PyMuPDF for PDF image extraction
 import nest_asyncio
 import pandas as pd
 import streamlit as st
+from docx import Document as DocxDocument
+from docx.oxml.ns import qn
 from dotenv import load_dotenv
 from langchain.docstore.document import Document
 # from langchain.embeddings import OpenAIEmbeddings
@@ -56,6 +59,7 @@ def _format_cache_line(filename: str, ids: List[str]) -> str:
     """Format cache line as filename\\id1/id2/...; falls back to filename only."""
     return f"{filename}\\{'/'.join(ids)}" if ids else filename
 
+
 # def has_new_files(persist_dir: str, current_files: List[str]) -> bool:
 #     cache_path = os.path.join(persist_dir, "files.txt")
 #     if not os.path.exists(cache_path):
@@ -64,12 +68,14 @@ def _format_cache_line(filename: str, ids: List[str]) -> str:
 #         cached_files = set(line.strip() for line in f.readlines())
 #     return set(current_files) != cached_files
 
+
 def is_gibberish(text, threshold=0.3):
     if not text:
         return True
     alnum = sum(c.isalnum() for c in text)
     ratio = alnum / max(len(text), 1)
     return ratio < threshold
+
 
 def ocr_pdf_with_paddleocr(pdf_path, lang='vi'):  # Vietnamese support
     ocr = PaddleOCR(lang=lang, use_angle_cls=True, show_log=False)
@@ -116,7 +122,7 @@ def ocr_pdf_with_paddleocr(pdf_path, lang='vi'):  # Vietnamese support
     return []
 
 
-def load_text_from_txt_file(filepath):
+def load_text_from_txt_file(filepath: str) -> List[Document]:
     encodings = ['utf-8', 'utf-16', 'cp1252', 'iso-8859-1', 'gbk']
     for encoding in encodings:
         try:
@@ -134,6 +140,76 @@ def load_text_from_txt_file(filepath):
 
     st.error(f"Cannot decode text file: {filepath}")
     return []
+
+
+def load_text_from_docx_file(filepath: str) -> List[Document]:
+    dirname = os.path.dirname(filepath)
+    basename = os.path.basename(filepath)
+    img_dir = os.path.join(dirname, "images", basename)
+    os.makedirs(img_dir, exist_ok=True)
+
+    doc = DocxDocument(filepath)
+    rels = doc.part.rels
+    text_list = []
+    img_counter = 0
+    img_paths = {}
+
+    for para in doc.paragraphs:
+        para_text = ""
+        for run in para.runs:
+            # normal text
+            if run.text:
+                para_text += run.text
+            # check if this run contains an image
+            drawing_elems = run._element.findall(
+                ".//w:drawing",
+                namespaces={
+                    "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+                }
+            )
+            if drawing_elems:
+                # flush accumulated text first
+                # text_list.append(para_text)
+                # para_text = ""
+                para_text = para_text.strip()
+                if para_text:
+                    text_list.append(para_text)
+                    para_text = ""
+
+                # extract embedded image
+                for drawing in drawing_elems:
+                    blip = drawing.findall(
+                        ".//a:blip",
+                        namespaces={
+                            "a": "http://schemas.openxmlformats.org/drawingml/2006/main"
+                        }
+                    )
+                    if blip:
+                        rid = blip[0].get(qn("r:embed"))
+                        image_part = rels[rid].target_part
+                        image_bytes = image_part.blob
+                        img_counter += 1
+                        img_name = f"image_{img_counter}.png"
+                        img_path = os.path.join(img_dir, img_name)
+                        with open(img_path, "wb") as f:
+                            f.write(image_bytes)
+                        text_list.append(f"[IMAGE:{img_name}]")
+                        img_paths[img_name] = img_path
+        # flush remaining paragraph text
+        # text_list.append(para_text)
+        para_text = para_text.strip()
+        if para_text:
+            text_list.append(para_text)
+    
+    full_text = "\n\n".join(text_list)
+    return [Document(
+        page_content=full_text,
+        metadata={
+            "source": filepath,
+            "filename": basename,
+            "img_paths_json": json.dumps(img_paths)
+        }
+    )]
 
 
 def extract_text(file_list: List[str], docs_dir: str = DEFAULT_DOCS_DIR):
@@ -158,10 +234,11 @@ def extract_text(file_list: List[str], docs_dir: str = DEFAULT_DOCS_DIR):
             elif fn.lower().endswith(".txt"):
                 docs.extend(load_text_from_txt_file(path))
             elif fn.lower().endswith(".docx"):
-                loaded = Docx2txtLoader(path).load()
-                for d in loaded:
-                    d.metadata["filename"] = os.path.basename(path)
-                docs.extend(loaded)
+                # loaded = Docx2txtLoader(path).load()
+                # for d in loaded:
+                #     d.metadata["filename"] = os.path.basename(path)
+                # docs.extend(loaded)
+                docs.extend(load_text_from_docx_file(path))
             elif fn.lower().endswith(".doc"):
                 loaded = UnstructuredWordDocumentLoader(path).load()
                 for d in loaded:
@@ -200,6 +277,7 @@ def extract_text(file_list: List[str], docs_dir: str = DEFAULT_DOCS_DIR):
             st.error(f"❌ Failed to process {fn}: {e}")
     return docs
 
+
 def get_text_chunks(
     docs,
     chunk_size: int = CHUNK_SIZE,
@@ -211,6 +289,7 @@ def get_text_chunks(
         separators=["\n\n", "\n", " ", ""],
     )
     return splitter.split_documents(docs)
+
 
 def save_text_chunks(
     chunks,
@@ -230,9 +309,11 @@ def save_text_chunks(
             f.write(chunk.page_content)
 
     print(f"✅ Exported {len(chunks)} chunks to '{chunks_dir}/'")
-    
+
+
 def hash_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
 
 # def get_vectorstore(
 #     file_list: List[str],
@@ -319,12 +400,14 @@ def get_user_dirs(username: str):
         'vectordb': f"{user_base}/vector_db"
     }
 
+
 def ensure_user_dirs(username: str):
     """Create user-specific directories"""
     dirs = get_user_dirs(username)
     for dir_path in dirs.values():
         os.makedirs(dir_path, exist_ok=True)
     return dirs
+
 
 def has_new_files_user(username: str, current_files: List[str]) -> bool:
     """Check for new files in user's directory"""
@@ -337,6 +420,7 @@ def has_new_files_user(username: str, current_files: List[str]) -> bool:
     with open(cache_path, "r", encoding="utf-8") as f:
         cached_files = set(_parse_cache_line(line)[0] for line in f.readlines())
     return set(current_files) != cached_files
+
 
 def get_vectorstore_user(
         username: str,
@@ -419,12 +503,14 @@ def get_vectorstore_user(
 
     return vectordb
 
+
 def cleanup_user_data(username: str):
     """Clean up all user data"""
     user_base = f"data/kb/{username}"
     if os.path.exists(user_base):
         shutil.rmtree(user_base)
         st.success(f"🗑️ Cleaned up all data for user: {username}")
+
 
 # def rebuild_user_vectorstore(username: str):
 #     """Rebuild vectorstore from scratch for user"""
