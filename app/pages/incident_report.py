@@ -7,6 +7,7 @@ from utils.db_crud import (
     list_incidents,
     resolve_incident,
 )
+from utils.db_orm import init_db
 from utils.email import init_incident_notifier
 from utils.save_docs import (
     add_resolved_incident_to_vectordb,
@@ -18,6 +19,8 @@ st.set_page_config(
     page_icon="🚨"
 )
 st.title("🚨 Incident Management")
+
+init_db()
 
 # State for dialog
 if "show_dialog" not in st.session_state:

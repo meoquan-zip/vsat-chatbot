@@ -82,3 +82,10 @@ def get_session(engine: Engine = get_engine()) -> Session:
 
 def create_all_tables(engine: Engine = get_engine()) -> None:
     Base.metadata.create_all(engine)
+
+
+def init_db():
+    data_dir = "./data/"
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+    create_all_tables()
