@@ -138,10 +138,10 @@ def chat_incident_prompt(incident: Incident,
                          username: str) -> List:
     prompt = (
         f"I have an incident that needs troubleshooting help:\n\n"
-        f"Name: {incident.name}\n"
-        f"Description: {incident.description}\n"
-        f"Logs: {incident.log or 'N/A'}\n"
-        f"SLA (hours): {incident.sla_no_of_hours}\n"
+        f"Name: {incident.name}\n\n"
+        f"Description: {incident.description}\n\n"
+        f"Logs: {incident.log or 'N/A'}\n\n"
+        f"SLA time (minutes): {incident.sla_no_of_hours}"  # leave as minutes for testing purposes
     )
     return _chat_response_streaming(
         prompt=prompt,
