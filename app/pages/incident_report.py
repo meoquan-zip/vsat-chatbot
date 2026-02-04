@@ -14,10 +14,10 @@ from utils.save_docs import (
 )
 
 st.set_page_config(
-    page_title="Incident Report - VSAT App",
+    page_title="Incident Management - VSAT App",
     page_icon="🚨"
 )
-st.title("Incident Report")
+st.title("🚨 Incident Management")
 
 # State for dialog
 if "show_dialog" not in st.session_state:

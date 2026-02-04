@@ -23,7 +23,7 @@ from .save_docs import get_user_documents, save_docs_to_vectordb_user
 
 class ChatApp:
     def __init__(self):
-        st.set_page_config(page_title="VSAT Chatbot")
+        # st.set_page_config(page_title="VSAT Chatbot")
         # st.title("VSAT Chatbot")
 
         # Initialize authentication
@@ -97,7 +97,7 @@ class ChatApp:
         # Header with user info and logout
         col1, col2 = st.columns([3, 1])
         with col1:
-            st.title(f"📚 VSAT Chatbot")
+            st.title(f"🤖 VSAT Chatbot")
             st.write(f"Welcome back, **{username}**!")
 
         # with col2:

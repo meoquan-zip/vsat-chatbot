@@ -14,5 +14,5 @@ st.set_page_config(
     page_icon="🏠",
 )
 
-st.title("VSAT Chatbot Home")
-st.write("Welcome to the VSAT Chatbot application.")
+st.title("🏠 VSAT App Homepage")
+st.write("Welcome to the VSAT application.")
