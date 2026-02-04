@@ -9,7 +9,7 @@ from sqlalchemy import Boolean, DateTime, Float, String, create_engine, func
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
-from .load_templates import load_templates_as_env_vars
+from .template import load_templates_as_env_vars
 
 load_dotenv()
 
