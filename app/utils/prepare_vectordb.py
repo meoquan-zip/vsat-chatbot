@@ -140,6 +140,26 @@ def load_text_from_docx_file(filepath: str) -> List[Document]:
     text_list = []
     img_counter = 0
     img_paths = {}
+    ns = {
+        "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+        "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
+        "v": "urn:schemas-microsoft-com:vml",
+        "r": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+    }
+
+    def _save_image(_rid: str):
+        nonlocal img_counter
+        # if rid not in rels:
+        #     return
+        image_part = rels[_rid].target_part
+        image_bytes = image_part.blob
+        img_counter += 1
+        img_name = f"image_{img_counter}.png"
+        img_path = os.path.join(img_dir, img_name)
+        with open(img_path, "wb") as f:
+            f.write(image_bytes)
+        text_list.append(f"[IMAGE:{img_name}]")
+        img_paths[img_name] = img_path
 
     for para in doc.paragraphs:
         para_text = ""
@@ -147,42 +167,40 @@ def load_text_from_docx_file(filepath: str) -> List[Document]:
             # normal text
             if run.text:
                 para_text += run.text
-            # check if this run contains an image
-            drawing_elems = run._element.findall(
-                ".//w:drawing",
-                namespaces={
-                    "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-                }
-            )
-            if drawing_elems:
-                # flush accumulated text first
+
+            # DrawingML images (native DOCX)
+            drawings = run._element.findall(".//w:drawing", namespaces=ns)
+            if drawings:
+                # # flush accumulated text first
                 # text_list.append(para_text)
                 # para_text = ""
                 para_text = para_text.strip()
                 if para_text:
                     text_list.append(para_text)
                     para_text = ""
-
                 # extract embedded image
-                for drawing in drawing_elems:
-                    blip = drawing.findall(
-                        ".//a:blip",
-                        namespaces={
-                            "a": "http://schemas.openxmlformats.org/drawingml/2006/main"
-                        }
-                    )
-                    if blip:
-                        rid = blip[0].get(qn("r:embed"))
-                        image_part = rels[rid].target_part
-                        image_bytes = image_part.blob
-                        img_counter += 1
-                        img_name = f"image_{img_counter}.png"
-                        img_path = os.path.join(img_dir, img_name)
-                        with open(img_path, "wb") as f:
-                            f.write(image_bytes)
-                        text_list.append(f"[IMAGE:{img_name}]")
-                        img_paths[img_name] = img_path
-        # flush remaining paragraph text
+                for drawing in drawings:
+                    blips = drawing.findall(".//a:blip", namespaces=ns)
+                    for blip in blips:
+                        rid = blip.get(qn("r:embed"))
+                        if rid:
+                            _save_image(rid)
+
+            # VML images (DOC → Spire → DOCX)
+            picts = run._element.findall(".//w:pict", namespaces=ns)
+            if picts:
+                para_text = para_text.strip()
+                if para_text:
+                    text_list.append(para_text)
+                    para_text = ""
+                for pict in picts:
+                    imagedata = pict.findall(".//v:imagedata", namespaces=ns)
+                    for img in imagedata:
+                        rid = img.get(qn("r:id"))
+                        if rid:
+                            _save_image(rid)
+
+        # # flush remaining paragraph text
         # text_list.append(para_text)
         para_text = para_text.strip()
         if para_text:
@@ -205,7 +223,7 @@ def convert_doc2docx(doc_path: str) -> str:
     docx_path = os.path.splitext(doc_path)[0] + ".docx"
     doc = SpireDocument()
     doc.LoadFromFile(doc_path)
-    doc.SaveToFile(docx_path, FileFormat.Docx2016)
+    doc.SaveToFile(docx_path, FileFormat.Docx2019)
     doc.Close()
     os.remove(doc_path)
     return docx_path
