@@ -5,8 +5,8 @@ A Retrieval-Augmented Generation (RAG) chatbot application designed for technica
 ## Features
 
 ### AI Assistant
-- **Document Upload & Processing**: Support for TXT, PDF, and DOCX files
-- **Image Reference Support**: Embedded images in DOCX files are extracted, indexed, and referenced in chatbot responses
+- **Document Upload & Processing**: Support for TXT, DOC, DOCX, and PDF files
+- **Image Reference Support**: Embedded images in DOC/DOCX files are extracted, indexed, and referenced in chatbot responses
 - **User-Specific Knowledge Base**: Each user maintains their own document collection and vector database
 - **Persistent Chat History**: Conversations are saved and loaded across sessions
 - **Context-Aware Responses**: Powered by Google Generative AI with retrieval from user documents
@@ -98,12 +98,12 @@ The application will open in your default browser at `http://localhost:8501`
 1. Navigate to the **AI Assistant** page
 2. **Upload Documents**:
    - Click the file uploader in the sidebar
-   - Select one or more files (TXT, PDF, DOCX, Excel)
+   - Select one or more files (TXT, DOC, DOCX, PDF)
    - Click "Process" to add them to your knowledge base
 3. **Ask Questions**:
    - Type your question in the chat input
    - The chatbot will retrieve relevant context from your documents
-   - If the answer references images from DOCX files, they will be displayed inline
+   - If the answer references images from DOC/DOCX files, they will be displayed inline
 
 ### Managing Incidents
 
@@ -120,9 +120,20 @@ The application will open in your default browser at `http://localhost:8501`
    - Click "Resolve" and provide a solution
    - Resolved incidents are added to your knowledge base automatically
 
+### Ask AI Assistant for Incidents
+
+For any unresolved incident (status is "open"), you can click the "Ask AI assistant" button to get troubleshooting help:
+
+1. In the incident list or sidebar, click "Ask AI assistant" on an open incident.
+2. The app will automatically navigate to the AI Assistant page and send a detailed prompt about the incident to the chatbot.
+3. The chatbot will respond with context-aware troubleshooting steps, suggestions, or questions based on your knowledge base.
+4. You can continue the conversation or provide more details as needed.
+
+This feature streamlines incident resolution by letting you quickly consult the AI assistant with all relevant incident details pre-filled.
+
 ### Image Reference Feature
 
-When you upload DOCX files containing embedded images:
+When you upload DOC or DOCX files containing embedded images:
 - Images are extracted to `data/kb/<username>/docs/images/<filename>/`
 - Text placeholders like `[IMAGE:image_1.png]` mark their locations
 - The chatbot includes these placeholders in responses when relevant
@@ -165,9 +176,12 @@ Edit `app/utils/prepare_vectordb.py` to adjust:
 
 ### LLM Settings
 
-Modify system prompts in `app/utils/chatbot.py`:
-- `system_instruction`: Main chatbot behavior
-- Temperature and streaming settings in `ChatGoogleGenerativeAI`
+#### System Instruction
+The main system instruction for the chatbot is stored in `app/templates/genai_system_instruction.txt`.
+Edit this file to change the chatbot's behavior and response style.
+
+#### Model Settings
+Temperature and streaming settings for the LLM are configured in the `ChatGoogleGenerativeAI` class in `app/utils/chatbot.py`.
 
 ## Troubleshooting
 
@@ -184,7 +198,7 @@ python -c "from app.utils.db_orm import create_all_tables; create_all_tables()"
 
 ### Image Display Issues
 
-- Ensure DOCX files have properly embedded images (not linked)
+- Ensure DOC/DOCX files have properly embedded images (not linked)
 - Check `data/kb/<username>/docs/images/` for extracted images
 - Verify file paths are absolute in the database
 
