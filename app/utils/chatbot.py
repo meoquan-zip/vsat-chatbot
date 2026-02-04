@@ -113,6 +113,12 @@ def _chat_response_streaming(prompt: str,
     for entry in chat_history:
         _render_message(entry)
 
+    # Auto-scroll to bottom after rendering chat history
+    st.markdown(
+        "<script>window.scrollTo(0, document.body.scrollHeight);</script>",
+        unsafe_allow_html=True
+    )
+
     # Convert to LangChain messages for the model
     lc_chat_history = []
     for entry in chat_history:
@@ -222,6 +228,13 @@ def _chat_response_streaming(prompt: str,
                     content = chunk.text
                 final_response += content
                 yield content
+
+        # Auto-scroll to bottom
+        st.markdown(
+            "<script>window.scrollTo(0, document.body.scrollHeight);</script>",
+            unsafe_allow_html=True
+        )
+        # Stream AI response
         st.write_stream(stream_response)
 
         # Render images referenced in the final response, if available
