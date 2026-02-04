@@ -154,7 +154,7 @@ class ChatApp:
                                     st.rerun()
 
             uploaded_docs = st.file_uploader(
-                "Upload (.pdf, .txt, .doc, .docx, .xls, .xlsx)",
+                "Upload (.pdf, .txt, .doc, .docx)",
                 type=["pdf", "txt", "doc", "docx", "xls", "xlsx"],
                 accept_multiple_files=True
             )

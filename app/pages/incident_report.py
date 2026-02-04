@@ -132,6 +132,11 @@ else:
                             st.session_state[f"show_solution_{incident.id}"] = True
                             st.rerun()
             with col_c:
+                if incident.status == "open":
+                    if st.button("Ask AI assistant", key=f"ask_ai_{incident.id}"):
+                        st.session_state["incident_prompt_request"] = incident.id
+                        st.switch_page("pages/ai_assistant.py")
+            with col_d:
                 if st.button("Delete", key=f"delete_{incident.id}"):
                     delete_incident(incident.id)
                     delete_incident_from_vectordb(
@@ -141,11 +146,6 @@ else:
                     )
                     st.warning("Incident deleted.")
                     st.rerun()
-            with col_d:
-                if incident.status == "open":
-                    if st.button("Ask AI assistant", key=f"ask_ai_{incident.id}"):
-                        st.session_state["incident_prompt_request"] = incident.id
-                        st.switch_page("pages/ai_assistant.py")
 
 # Incident detail view
 if st.session_state["selected_incident_id"]:
