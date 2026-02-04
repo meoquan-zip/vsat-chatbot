@@ -185,10 +185,19 @@ class ChatApp:
             #             )
             #     st.success("✅ All valid URLs processed.")
 
-            # User-specific reset
-            if st.button("🗑️ Reset My Data", use_container_width=True):
-                if st.button("⚠️ Confirm Reset", use_container_width=True):
-                    self.reset_user_data(username)
+            # # User-specific reset with confirmation stored in session
+            # reset_flag = f"confirm_reset_{username}"
+            # if st.button("🗑️ Reset my data", use_container_width=True):
+            #     st.session_state[reset_flag] = True
+
+            # if st.session_state.get(reset_flag, False):
+            #     if st.button("⚠️ Confirm reset", use_container_width=True):
+            #         # Drop cached vectordb handle so files are not locked on Windows
+            #         user_vectordb_key = f"vectordb_{username}"
+            #         st.session_state.pop(user_vectordb_key, None)
+
+            #         self.reset_user_data(username)
+            #         st.session_state.pop(reset_flag, None)
 
         # Vector store and chat for user
         all_user_docs = get_user_documents(username)
