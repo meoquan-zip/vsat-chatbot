@@ -19,13 +19,9 @@ load_dotenv()
 
 
 def render_incident_email(incident: Incident) -> str:
-    template_str = (
-        "Unresolved Incident\n\n"
-        "ID: {{ incident.id }}\n"
-        "Name: {{ incident.name }}\n"
-        "Description: {{ incident.description }}\n"
-        "Log: {{ incident.log or 'N/A' }}\n"
-        "Created at: {{ incident.created_at }}\n"
+    template_str = os.getenv(
+        "INCIDENT_EMAIL_TEMPLATE",
+        "{{ incident.name }} \n\n {{ incident.description }}"
     )
     template = Template(template_str)
     return template.render(incident=incident)
@@ -51,7 +47,7 @@ def send_incident_email_delay(incident_id: str,
     from_email = os.getenv("FROM_EMAIL", "noreply@example.com")
 
     body = render_incident_email(incident)
-    msg = MIMEText(body)
+    msg = MIMEText(body, "html")
     msg["Subject"] = subject
     msg["From"] = from_email
     msg["To"] = incident.email

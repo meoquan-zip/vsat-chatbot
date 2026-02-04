@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Overdue Incident Notification</title>
+  <style>
+    body { font-family: Arial, sans-serif; color: #222; }
+    .container { max-width: 600px; margin: 0 auto; padding: 24px; background: #f9f9f9; border-radius: 8px; }
+    h2 { color: #b22222; }
+    .label { font-weight: bold; }
+    .value { margin-bottom: 12px; }
+    .footer { margin-top: 32px; font-size: 0.9em; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Unresolved Incident</h2>
+    <div class="value"><span class="label">ID:</span> {{ incident.id }}</div>
+    <div class="value"><span class="label">Name:</span> {{ incident.name }}</div>
+    <div class="value"><span class="label">Description:</span> {{ incident.description }}</div>
+    <div class="value"><span class="label">Log:</span>
+      {% if incident.log %}
+        <pre style="background:#f4f4f4;border-radius:4px;padding:8px;overflow-x:auto;"><code>{{ incident.log }}</code></pre>
+      {% else %}
+        N/A
+      {% endif %}
+    </div>
+    <div class="value"><span class="label">Created at:</span> {{ incident.created_at }}</div>
+    <div class="footer">This is an automated notification from the VSAT Incident Management System.</div>
+  </div>
+</body>
+</html>

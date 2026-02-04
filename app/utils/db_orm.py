@@ -9,6 +9,8 @@ from sqlalchemy import Boolean, DateTime, Float, String, create_engine, func
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
+from .load_templates import load_templates_as_env_vars
+
 load_dotenv()
 
 
@@ -89,3 +91,4 @@ def init_db():
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     create_all_tables()
+    load_templates_as_env_vars()

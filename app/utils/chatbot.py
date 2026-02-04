@@ -4,6 +4,7 @@ import re
 from typing import List
 
 import streamlit as st
+from jinja2 import Template
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.messages import AIMessage, HumanMessage
@@ -60,12 +61,16 @@ def chat_incident_prompt(incident: Incident,
                          chat_history: List,
                          vectordb,
                          username: str) -> List:
-    prompt = (
-        f"I have an incident that needs troubleshooting help:\n\n"
-        f"Name: {incident.name}\n\n"
-        f"Description: {incident.description}\n\n"
-        f"Logs: {incident.log or 'N/A'}\n\n"
-        f"SLA time (minutes): {incident.sla_no_of_hours}"  # leave as minutes for testing purposes
+    template_str = os.getenv(
+        "INCIDENT_PROMPT_TEMPLATE",
+        "{{ name }}\n\n{{ description }}\n\n{{ log }}\n\n{{ sla_time }}"
+    )
+    template = Template(template_str)
+    prompt = template.render(
+        name=incident.name,
+        description=incident.description,
+        log=incident.log or "N/A",
+        sla_time=incident.sla_no_of_hours
     )
     return _chat_response_streaming(
         prompt=prompt,
@@ -143,39 +148,9 @@ def _chat_response_streaming(prompt: str,
 
     retriever = vectordb.as_retriever()
 
-    system_instruction = system_instruction or (
-        "You are an internal RAG-based AI assistant for a technical support and incident management system. "
-        "You will receive a user query together with: "
-        "(1) the ongoing chat history, and "
-        "(2) relevant context retrieved from the system's knowledge base (vector database). "
-
-        "Your job is to provide accurate and helpful answers strictly based on the retrieved context. "
-        "Use the chat history only to maintain continuity and better understand the user's intent. "
-
-        "The user query may come from two sources: "
-        "- a manually typed question, or "
-        "- an automatically generated prompt related to an unresolved incident (status = 'open'), "
-        "which may include incident name, description, logs, SLA information, or other details. "
-
-        "When the query is incident-related, treat it as a request for troubleshooting guidance or resolution suggestions. "
-        "Provide actionable steps, possible causes, and recommendations grounded in the retrieved knowledge. "
-
-        "Images inside the retrieved context are represented by placeholders like [IMAGE:image_3.png]. "
-        "If an image is part of a step or helps clarity, keep the placeholder in the answer exactly where it belongs. "
-        "Do not invent new image names. Only use placeholders that already appear in the provided context. "
-
-        "Do not invent facts or solutions that are not supported by the provided context. "
-        "If the retrieved information is insufficient or unclear, ask the user for more details "
-        "(for example: additional logs, environment conditions, error messages, or incident updates). "
-
-        "Do not mention the existence of the knowledge base, embeddings, or vector search. "
-        "Simply answer naturally as a technical assistant. "
-
-        "After answering, append a short 'Sources:' section listing only the document filenames (no paths, no image paths). "
-        "If no sources are available, state 'Sources: none'. "
-
-        "Answer using only the following context:\n\n{context}"
-    )
+    if not system_instruction:
+        system_instruction = os.getenv("GENAI_SYSTEM_INSTRUCTION_TEMPLATE", "")
+    
     rag_prompt = ChatPromptTemplate.from_messages([
         ("system", system_instruction),
         MessagesPlaceholder(variable_name="chat_history"),

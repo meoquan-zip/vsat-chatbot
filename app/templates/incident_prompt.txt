@@ -1,0 +1,9 @@
+I have an incident that needs troubleshooting help:
+
+Name: {{ name }}
+
+Description: {{ description }}
+
+Logs: {{ log }}
+
+SLA time (minutes): {{ sla_time }}
