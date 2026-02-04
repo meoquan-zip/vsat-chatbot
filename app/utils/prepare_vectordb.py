@@ -7,7 +7,6 @@ import uuid
 from collections import defaultdict
 from typing import List, Tuple
 
-import chromadb
 import fitz  # PyMuPDF for PDF image extraction
 import nest_asyncio
 import pandas as pd
@@ -16,7 +15,6 @@ from docx import Document as DocxDocument
 from docx.oxml.ns import qn
 from dotenv import load_dotenv
 from langchain.docstore.document import Document
-# from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import (
     Docx2txtLoader,
@@ -29,9 +27,8 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from paddleocr import PaddleOCR
 from spire.doc import Document as SpireDocument, FileFormat
 
-from .db_orm import Incident
-
 nest_asyncio.apply()
+load_dotenv()
 
 # --- Constants ---
 DEFAULT_DOCS_DIR    = "docs"
@@ -39,9 +36,6 @@ DEFAULT_PERSIST_DIR = "Vector_DB - Documents"
 DEFAULT_CHUNKS_DIR  = "chunks"
 CHUNK_SIZE          = 8000
 CHUNK_OVERLAP       = 800
-
-# Load your .env (must contain OPENAI_API_KEY)
-load_dotenv()
 
 
 def _parse_cache_line(line: str) -> Tuple[str, List[str]]:
@@ -59,15 +53,6 @@ def _parse_cache_line(line: str) -> Tuple[str, List[str]]:
 def _format_cache_line(filename: str, ids: List[str]) -> str:
     """Format cache line as filename\\id1/id2/...; falls back to filename only."""
     return f"{filename}\\{'/'.join(ids)}" if ids else filename
-
-
-# def has_new_files(persist_dir: str, current_files: List[str]) -> bool:
-#     cache_path = os.path.join(persist_dir, "files.txt")
-#     if not os.path.exists(cache_path):
-#         return True
-#     with open(cache_path, "r", encoding="utf-8") as f:
-#         cached_files = set(line.strip() for line in f.readlines())
-#     return set(current_files) != cached_files
 
 
 def is_gibberish(text, threshold=0.3):
@@ -340,81 +325,6 @@ def save_text_chunks(
 
 def hash_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
-
-# def get_vectorstore(
-#     file_list: List[str],
-#     docs_dir: str = DEFAULT_DOCS_DIR,
-#     persist_dir: str = DEFAULT_PERSIST_DIR,
-#     chunks_dir: str = DEFAULT_CHUNKS_DIR
-# ) -> Chroma:
-#     """
-#     Incrementally update a Chroma vectorstore by embedding only new files.
-#     """
-#     # embedding = OpenAIEmbeddings(
-#     #     model="text-embedding-3-large",
-#     #     openai_api_key=st.secrets["OPENAI_API_KEY"]
-#     # )
-#     embedding = GoogleGenerativeAIEmbeddings(
-                    # docs.append(Document(
-                    #     page_content=text,
-                    #     metadata={
-                    #         "source": path,
-                    #         "filename": os.path.basename(path)
-                    #     }
-                    # ))
-#         google_api_key=os.getenv('GOOGLE_API_KEY')
-#     )
-
-#     # Load or create vectorstore
-#     vectordb = Chroma(
-#         persist_directory=persist_dir,
-#         embedding_function=embedding
-#     )
-
-#     # Load previously embedded file list
-#     cache_path = os.path.join(persist_dir, "files.txt")
-#     prev_files = set()
-#     if os.path.exists(cache_path):
-#         with open(cache_path, "r", encoding="utf-8") as f:
-#             prev_files = set(line.strip() for line in f)
-
-#     # Filter new files
-#     new_files = [f for f in file_list if f not in prev_files]
-#     if not new_files:
-#         print("✅ No new files to add.")
-#         return vectordb
-
-#     print(f"🆕 New files to process: {new_files}")
-#     docs = extract_text(new_files, docs_dir)
-#     chunks = get_text_chunks(docs)
-
-#     # Deduplicate by chunk content hash
-#     seen_hashes = set()
-#     unique_chunks: List[Document] = []
-#     for chunk in chunks:
-#         content_hash = hash_text(chunk.page_content)
-#         if content_hash not in seen_hashes:
-#             seen_hashes.add(content_hash)
-#             unique_chunks.append(chunk)
-
-#     # Add only unique chunks
-#     if unique_chunks:
-#         vectordb.add_documents(unique_chunks)
-#         vectordb.persist()
-#         print(f"✅ Added {len(unique_chunks)} unique chunks.")
-#     else:
-#         print("⚠️ No unique chunks to embed — skipping update.")
-
-#     # Append new files to file cache
-#     with open(cache_path, "a", encoding="utf-8") as f:
-#         for fname in new_files:
-#             f.write(fname + "\n")
-
-#     # Save new chunks for inspection
-#     save_text_chunks(unique_chunks, chunks_dir=chunks_dir, overwrite=False)
-
-#     return vectordb
 
 
 # --- User-specific Constants ---

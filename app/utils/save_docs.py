@@ -114,40 +114,6 @@ def delete_user_document(username: str, filename: str):
     return True
 
 
-# def save_docs_to_vectordb(uploaded_docs, existing_docs):
-#     """
-#     Save newly uploaded documents to 'docs/' and return the list of newly added filenames.
-
-#     Parameters:
-#     - uploaded_docs (list): Files uploaded through Streamlit uploader.
-#     - existing_docs (list): Filenames already in the 'docs/' folder (used to avoid duplicates).
-
-#     Returns:
-#     - List of newly saved filenames.
-#     """
-
-#     # Filter out already existing files by name
-#     new_files = [doc for doc in uploaded_docs if doc.name not in existing_docs]
-#     new_file_names = [doc.name for doc in new_files]
-
-#     if new_files and st.button("Process"):
-#         os.makedirs("docs", exist_ok=True)
-
-#         for doc in new_files:
-#             file_path = os.path.join("docs", doc.name)
-#             try:
-#                 with open(file_path, "wb") as f:
-#                     f.write(doc.getvalue())
-#                 # st.success(f"✅ Saved: {doc.name}")  # Removed to avoid duplicate messages
-#             except Exception as e:
-#                 continue
-
-#         return new_file_names
-
-#     return []
-
-# =============================================================================
-
 def add_resolved_incident_to_vectordb(
     username: str,
     incident: Incident,
@@ -155,9 +121,6 @@ def add_resolved_incident_to_vectordb(
     """Add resolved incident details to user's vectorstore"""
     _ = ensure_user_dirs(username)
 
-    # Tạo document từ thông tin incident
-    # content = f"""
-    #     Incident Name: {incident.name}\n\nDescription: {incident.description}\n\nSolution: {incident.solution}"
     content = "\n\n".join([
         f"Incident Name: {incident.name}",
         f"Description: {incident.description}",
@@ -172,15 +135,13 @@ def add_resolved_incident_to_vectordb(
         }
     )
 
-    # Lấy vectorstore của user
     vectordb = get_vectorstore_user(username)
-
-    # Thêm document vào vectordb
     vectordb.add_documents([doc], ids=[incident_id])
     vectordb.persist()
 
     st.success(f"✅ Added resolved incident '{incident.name}' to vectorstore for user: {username}")
     return incident_id
+
 
 def delete_incident_from_vectordb(
     username: str,

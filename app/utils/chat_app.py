@@ -22,10 +22,6 @@ from .save_docs import get_user_documents, save_docs_to_vectordb_user
 
 
 class ChatApp:
-    """
-    A Streamlit application for chatting with documents and websites.
-    """
-
     def __init__(self):
         st.set_page_config(page_title="VSAT Chatbot")
         # st.title("VSAT Chatbot")
@@ -247,39 +243,6 @@ class ChatApp:
         st.session_state[f'url_inputs_{username}'] = [""]
         st.session_state[f'chat_history_{username}'] = []
 
-    # def _handle_url_inputs_user(self, username):
-    #     """Handle URL inputs for specific user"""
-    #     url_inputs_key = f'url_inputs_{username}'
-
-    #     if url_inputs_key not in st.session_state:
-    #         st.session_state[url_inputs_key] = [""]
-
-    #     if st.button("Add another URL"):
-    #         st.session_state[url_inputs_key].append("")
-    #         st.rerun()
-
-    #     new_url_inputs = []
-    #     should_rerun = False
-
-    #     for i, url in enumerate(st.session_state[url_inputs_key]):
-    #         col1, col2 = st.columns([10, 1])
-    #         with col1:
-    #             new_url = st.text_input(
-    #                 f"URL #{i+1}",
-    #                 value=url,
-    #                 key=f"url_{username}_{i}"
-    #             )
-    #             new_url_inputs.append(new_url)
-    #         with col2:
-    #             if st.button("❌", key=f"remove_url_{username}_{i}"):
-    #                 new_url_inputs.pop(i)
-    #                 should_rerun = True
-
-    #     st.session_state[url_inputs_key] = new_url_inputs
-
-    #     if should_rerun:
-    #         st.rerun()
-
     def reset_user_data(self, username):
         """Reset all data for specific user"""
         cleanup_user_data(username)
@@ -291,9 +254,6 @@ class ChatApp:
 
         st.success(f"🗑️ All data reset for user: {username}")
         st.rerun()
-
-    # def _handle_url_inputs(self):
-    #     pass  #
 
     def run(self):
         """Main application runner"""
