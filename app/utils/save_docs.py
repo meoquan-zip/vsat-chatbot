@@ -137,7 +137,8 @@ def add_resolved_incident_to_vectordb(
         page_content=content,
         metadata={
             "source": incident_id,
-            "filename": incident_id
+            "filename": incident_id,
+            "img_list": "",
         }
     )
 
