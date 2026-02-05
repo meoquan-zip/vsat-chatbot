@@ -11,6 +11,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.outputs import ChatGenerationChunk
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
+from streamlit_carousel import carousel
 
 from .db_crud import get_user_last_n_messages, log_chat_message
 from .db_orm import Incident
@@ -87,35 +88,35 @@ def _chat_response_streaming(prompt: str,
     """
     Generate chatbot response with streaming.
     """
-    IMAGE_WIDTH = "content"  # "content", "stretch", or int pixel value
-    def _render_message(entry: dict):
+    def _render_gallery(images: List[dict], placeholder_names: List[str], gallery_key: str):
+        if not images:
+            return
+        allowed = set(placeholder_names) if placeholder_names else {img.get("name") for img in images if img.get("name")}
+        filtered = [img for img in images if img.get("name") in allowed]
+        if not filtered:
+            return
+        items = []
+        for img in filtered:
+            items.append({
+                "img": img.get("path"),
+                "title": "",
+                "text": img.get("name", ""),
+            })
+        carousel(items=items, key=f"carousel_{gallery_key}")
+
+    def _render_message(entry: dict, idx: int):
         role_label = "AI" if entry.get("role") == "ai" else "Human"
         content = entry.get("content", "")
         images = entry.get("images") or []
         placeholder_names = re.findall(r"\[IMAGE:([^\]]+)\]", content)
-        lookup = {img.get("name"): img for img in images if img.get("name")}
 
         with st.chat_message(role_label):
             st.markdown(content)
-            shown = set()
-            for name in placeholder_names:
-                if name in shown:
-                    continue
-                meta = lookup.get(name)
-                if not meta:
-                    continue
-                caption_parts = [meta.get("source"), name]
-                caption = " - ".join([p for p in caption_parts if p])
-                st.image(
-                    image=meta.get("path"),
-                    caption=caption or None,
-                    width=IMAGE_WIDTH,
-                )
-                shown.add(name)
+            _render_gallery(images, placeholder_names, gallery_key=f"hist_{idx}")
 
     # Display chat messages
-    for entry in chat_history:
-        _render_message(entry)
+    for idx, entry in enumerate(chat_history):
+        _render_message(entry, idx)
 
     # Auto-scroll to bottom after rendering chat history
     st.markdown(
@@ -211,25 +212,15 @@ def _chat_response_streaming(prompt: str,
         # Stream AI response
         st.write_stream(stream_response)
 
-        # Render images referenced in the final response, if available
+        # Render images referenced in the final response using carousel
         placeholder_names = re.findall(r"\[IMAGE:([^\]]+)\]", final_response)
         used_images = []
-        shown = set()
         for name in placeholder_names:
-            if name in shown:
-                continue
             meta = image_lookup.get(name)
             if not meta:
                 continue
-            caption_parts = [meta.get("source"), name]
-            caption = " — ".join([p for p in caption_parts if p])
-            st.image(
-                image=meta.get("path"),
-                caption=caption or None,
-                width=IMAGE_WIDTH,
-            )
             used_images.append({"name": name, **meta})
-            shown.add(name)
+        _render_gallery(used_images, placeholder_names, gallery_key=f"resp_{len(chat_history)}")
 
     if username:
         # Save user message to database
