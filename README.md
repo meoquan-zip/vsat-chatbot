@@ -185,6 +185,12 @@ Temperature and streaming settings for the LLM are configured in the `ChatGoogle
 
 ## Troubleshooting
 
+### Vector Store Connection Error
+
+![Vector store error](images/vectordb_error.png)
+
+If you see the error message above when opening the **AI Assistant** page, simply **reload the page** (or click *Rerun* in Streamlit). The issue is transient and does not affect your data.
+
 ### Database Schema Updates
 
 If you've added new columns (like `images_json`), recreate the database:
