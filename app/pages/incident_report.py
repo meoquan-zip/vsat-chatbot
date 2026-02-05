@@ -1,5 +1,6 @@
 import streamlit as st
 
+from utils.config import init_app
 from utils.db_crud import (
     create_incident,
     delete_incident,
@@ -7,7 +8,6 @@ from utils.db_crud import (
     list_incidents,
     resolve_incident,
 )
-from utils.db_orm import init_db
 from utils.email import init_incident_notifier
 from utils.save_docs import (
     add_resolved_incident_to_vectordb,
@@ -20,7 +20,7 @@ st.set_page_config(
 )
 st.title("🚨 Incident Management")
 
-init_db()
+init_app()
 
 # State for dialog
 if "show_dialog" not in st.session_state:
@@ -117,8 +117,7 @@ else:
                             else:
                                 incident = resolve_incident(incident.id, solution)
                                 add_resolved_incident_to_vectordb(
-                                    # todo: get actual username
-                                    username="admin",
+                                    username=st.session_state.username,
                                     incident=incident
                                 )
                                 st.success("Incident resolved.")
@@ -140,8 +139,7 @@ else:
                 if st.button("Delete", key=f"delete_{incident.id}"):
                     delete_incident(incident.id)
                     delete_incident_from_vectordb(
-                        # todo: get actual username
-                        username="admin",
+                        username=st.session_state.username,
                         incident_id=incident.id
                     )
                     st.warning("Incident deleted.")
@@ -183,8 +181,7 @@ if st.session_state["selected_incident_id"]:
                     else:
                         incident = resolve_incident(incident.id, sidebar_solution)
                         add_resolved_incident_to_vectordb(
-                            # todo: get actual username
-                            username="admin",
+                            username=st.session_state.username,
                             incident=incident,
                         )
                         st.sidebar.success("Incident resolved.")
@@ -203,8 +200,7 @@ if st.session_state["selected_incident_id"]:
         if st.sidebar.button("Delete Incident", key="sidebar_delete"):
             delete_incident(incident.id)
             delete_incident_from_vectordb(
-                # todo: get actual username
-                username="admin",
+                username=st.session_state.username,
                 incident_id=incident.id
             )
             st.sidebar.warning("Incident deleted.")

@@ -9,10 +9,7 @@ from sqlalchemy import Boolean, DateTime, Float, String, create_engine, func
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
-from .template import load_templates_as_env_vars
-
 load_dotenv()
-
 
 class Base(DeclarativeBase):
     pass
@@ -84,11 +81,3 @@ def get_session(engine: Engine = get_engine()) -> Session:
 
 def create_all_tables(engine: Engine = get_engine()) -> None:
     Base.metadata.create_all(engine)
-
-
-def init_db():
-    data_dir = "./data/"
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
-    create_all_tables()
-    load_templates_as_env_vars()

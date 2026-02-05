@@ -1,6 +1,6 @@
 import streamlit as st
 
-from utils.db_orm import init_db
+from utils.config import init_app
 
 
 st.set_page_config(
@@ -8,7 +8,7 @@ st.set_page_config(
     page_icon="🏠",
 )
 
-init_db()
+init_app()
 
 st.title("🏠 VSAT App Homepage")
 st.write("Welcome to the VSAT application.")

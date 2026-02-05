@@ -3,7 +3,7 @@ import os
 
 import streamlit as st
 
-from .auth import UserAuth
+# from .auth import UserAuth
 from .chatbot import (
     chat_incident_prompt,
     chat_user_prompt,
@@ -23,11 +23,12 @@ from .save_docs import get_user_documents, save_docs_to_vectordb_user
 
 class ChatApp:
     def __init__(self):
+        pass
         # st.set_page_config(page_title="VSAT Chatbot")
         # st.title("VSAT Chatbot")
 
-        # Initialize authentication
-        self.auth = UserAuth()
+        # # Initialize authentication
+        # self.auth = UserAuth()
 
         # # Check if user is logged in
         # if 'authentication_status' not in st.session_state:
@@ -35,8 +36,8 @@ class ChatApp:
         # if 'username' not in st.session_state:
         #     st.session_state.username = None
         
-        st.session_state["authentication_status"] = True
-        st.session_state["username"] = "admin"
+        # st.session_state["authentication_status"] = True
+        # st.session_state["username"] = "admin"
 
     # def _reset_session_dirs_and_state(self):
     #     """Clean session state and temporary directories."""
@@ -76,7 +77,7 @@ class ChatApp:
 
     def render_main_app(self):
         """Render main application for authenticated users"""
-        username = "admin"  # st.session_state.username
+        username = st.session_state.username
 
         # Kiểm tra và hiển thị thông báo upload thành công
         upload_success_key = f'upload_success_{username}'
@@ -266,8 +267,7 @@ class ChatApp:
 
     def run(self):
         """Main application runner"""
-        # if st.session_state.authentication_status == True:
-        if True:
+        if st.session_state.authentication_status == True:
             self.render_main_app()
         else:
             self.render_login_page()
