@@ -1,3 +1,12 @@
+# ---- sqlite3 compatibility fix for Chroma on Linux ----
+try:
+    __import__("pysqlite3")
+    import sys
+    sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
+except Exception as e:
+    print("Failed to patch sqlite3:", e)
+# ------------------------------------------------------
+
 import streamlit as st
 
 from utils.chat_app import ChatApp
