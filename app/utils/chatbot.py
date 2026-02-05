@@ -63,15 +63,14 @@ def chat_incident_prompt(incident: Incident,
                          username: str) -> List:
     template_str = os.getenv(
         "INCIDENT_PROMPT_TEMPLATE",
-        "{{ name }}\n\n{{ description }}\n\n{{ log }}\n\n{{ sla_time }}"
+        (
+            "Incident Name: {{ incident.name }}\n\n"
+            "Description: {{ incident.description }}\n\n"
+            "Log: {{ incident.log }}"
+        )
     )
     template = Template(template_str)
-    prompt = template.render(
-        name=incident.name,
-        description=incident.description,
-        log=incident.log or "N/A",
-        sla_time=incident.sla_no_of_hours
-    )
+    prompt = template.render(incident=incident)
     return _chat_response_streaming(
         prompt=prompt,
         chat_history=chat_history,

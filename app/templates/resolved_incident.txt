@@ -1,0 +1,17 @@
+The following incident has been resolved:
+
+ID: {{ incident.id }}
+
+Name: {{ incident.name }}
+
+Description: {{ incident.description }}
+
+Logs: {{ incident.log or 'N/A' }}
+
+SLA time (minutes): {{ '%.2f' | format(incident.sla_no_of_hours) }}
+
+Solution: {{ incident.solution }}
+
+Created at: {{ incident.created_at }}
+
+Resolved at: {{ incident.updated_at }}

@@ -1,9 +1,9 @@
 I have an incident that needs troubleshooting help:
 
-Name: {{ name }}
+Name: {{ incident.name }}
 
-Description: {{ description }}
+Description: {{ incident.description }}
 
-Logs: {{ log }}
+Logs: {{ incident.log or 'N/A' }}
 
-SLA time (minutes): {{ sla_time }}
+SLA time (minutes): {{ '%.2f' | format(incident.sla_no_of_hours) }}

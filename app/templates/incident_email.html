@@ -25,6 +25,7 @@
         N/A
       {% endif %}
     </div>
+    <div class="value"><span class="label">SLA time (minutes):</span> {{ '%.2f' | format(incident.sla_no_of_hours) }}</div>
     <div class="value"><span class="label">Created at:</span> {{ incident.created_at }}</div>
     <div class="footer">This is an automated notification from the VSAT Incident Management System.</div>
   </div>

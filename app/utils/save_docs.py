@@ -2,6 +2,7 @@ import os
 import shutil
 
 import streamlit as st
+from jinja2 import Template
 from langchain.docstore.document import Document
 
 from .db_orm import Incident
@@ -121,11 +122,16 @@ def add_resolved_incident_to_vectordb(
     """Add resolved incident details to user's vectorstore"""
     _ = ensure_user_dirs(username)
 
-    content = "\n\n".join([
-        f"Incident Name: {incident.name}",
-        f"Description: {incident.description}",
-        f"Solution: {incident.solution}",
-    ])
+    template_str = os.getenv(
+        "RESOLVED_INCIDENT_TEMPLATE",
+        (
+            "Incident Name: {{ incident.name }}\n\n"
+            "Description: {{ incident.description }}\n\n"
+            "Solution: {{ incident.solution }}"
+        )
+    )
+    template = Template(template_str)
+    content = template.render(incident=incident)
     incident_id = f"incident_{incident.id}"
     doc = Document(
         page_content=content,
