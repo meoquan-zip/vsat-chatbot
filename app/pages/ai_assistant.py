@@ -4,7 +4,7 @@ try:
     import sys
     sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
 except Exception as e:
-    print("Failed to patch sqlite3:", e)
+    pass
 # ------------------------------------------------------
 
 import streamlit as st
