@@ -4,6 +4,7 @@ import shutil
 import streamlit as st
 from jinja2 import Template
 from langchain.docstore.document import Document
+from spire.doc import Document as SpireDocument, FileFormat
 
 from .db_orm import Incident
 from .prepare_vectordb import (
@@ -24,6 +25,15 @@ def save_docs_to_vectordb_user(username: str, uploaded_docs, existing_docs):
     Returns:
     - List of newly saved filenames
     """
+    def convert_doc2docx(doc_path: str) -> str:
+        """Convert `.doc` file to `.docx` and return new path."""
+        docx_path = os.path.splitext(doc_path)[0] + ".docx"
+        doc = SpireDocument()
+        doc.LoadFromFile(doc_path)
+        doc.SaveToFile(docx_path, FileFormat.Docx2019)
+        doc.Close()
+        os.remove(doc_path)
+        return docx_path
 
     # Get user-specific directories
     dirs = ensure_user_dirs(username)
@@ -31,15 +41,23 @@ def save_docs_to_vectordb_user(username: str, uploaded_docs, existing_docs):
 
     # Filter out already existing files by name
     new_files = [doc for doc in uploaded_docs if doc.name not in existing_docs]
-    new_file_names = [doc.name for doc in new_files]
+    new_file_names = []
 
     if new_files and st.button("Process"):
         for doc in new_files:
             file_path = os.path.join(docs_dir, doc.name)
+            fn = doc.name
             try:
                 with open(file_path, "wb") as f:
                     f.write(doc.getvalue())
-                st.success(f"✅ Saved for {username}: {doc.name}")
+                # st.success(f"✅ Saved for {username}: {doc.name}")
+
+                if os.path.splitext(doc.name)[1].lower() == ".doc":
+                    file_path = convert_doc2docx(file_path)
+                    fn = os.path.basename(file_path)
+                    st.info(f"ℹ️ Converted .doc to .docx: {fn}")
+
+                new_file_names.append(fn)
             except Exception as e:
                 st.error(f"❌ Failed to save {doc.name}: {e}")
                 continue
