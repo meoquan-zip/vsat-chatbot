@@ -24,7 +24,6 @@ from langchain_community.document_loaders import (
 )
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from paddleocr import PaddleOCR
 from spire.doc import Document as SpireDocument, FileFormat
 
 nest_asyncio.apply()
@@ -63,8 +62,14 @@ def is_gibberish(text, threshold=0.3):
     return ratio < threshold
 
 
+@st.cache_resource
+def get_ocr(lang: str):
+    from paddleocr import PaddleOCR
+    return PaddleOCR(lang=lang, use_angle_cls=True, show_log=False)
+
+
 def ocr_pdf_with_paddleocr(pdf_path, lang='vi'):  # Vietnamese support
-    ocr = PaddleOCR(lang=lang, use_angle_cls=True, show_log=False)
+    ocr = get_ocr(lang)
     doc = fitz.open(pdf_path)
     all_text = []
     for page_num in range(len(doc)):

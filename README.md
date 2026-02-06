@@ -83,15 +83,33 @@ The database will be created automatically on first run. To manually create tabl
 python -c "from app.utils.db_orm import create_all_tables; create_all_tables()"
 ```
 
+### 6. Docker Setup (Optional)
+
+Build the Docker image:
+
+```shell
+docker build -t vsat-chatbot .
+```
+
 ## Usage
 
 ### Starting the Application
+
+#### Run locally
 
 ```shell
 streamlit run app/home.py
 ```
 
-The application will open in your default browser at `http://localhost:8501`
+#### Run with Docker
+
+```shell
+docker run -p 8501:8501 --env-file .env vsat-chatbot
+```
+
+**Warning**: When running without a mounted volume, all application data (SQLite database, uploaded documents, and ChromaDB vector store) will be lost when the container stops or is removed.
+
+The application will open in your default browser at `http://localhost:8501`.
 
 ### Using the AI Assistant
 
