@@ -34,7 +34,7 @@ A Retrieval-Augmented Generation (RAG) chatbot application designed for technica
 ### 1. Clone the repository
 
 ```shell
-git clone <repository-url>
+git clone https://github.com/meoquan-zip/vsat-chatbot.git
 cd vsat-chatbot
 ```
 
@@ -61,15 +61,15 @@ Create a `.env` file in the project root (use `.env.template` as reference):
 ```env
 # Google AI Configuration
 GOOGLE_API_KEY=your_google_api_key_here
-GENERATIVE_AI_MODEL=gemini-1.5-flash
-TEXT_EMBEDDING_MODEL=models/text-embedding-004
+GENERATIVE_AI_MODEL=gemini-2.5-flash
+TEXT_EMBEDDING_MODEL=models/gemini-embedding-001
 
-# Database Configuration (optional)
+# Database Configuration
 DATABASE_URL=sqlite:///data/incidents.db
 
 # Email Configuration (optional, for incident notifications)
 SMTP_SERVER=smtp.gmail.com
-SMTP_PORT=587
+SMTP_PORT=465
 SMTP_USER=your_email@gmail.com
 SMTP_PASSWORD=your_app_password
 FROM_EMAIL=noreply@example.com
