@@ -12,6 +12,10 @@ ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    libicu-dev \
+    fontconfig \
+    fonts-dejavu-core \
+    fonts-dejavu-extra \
     && rm -rf /var/lib/apt/lists/*
 
 # ---- Working directory ----
