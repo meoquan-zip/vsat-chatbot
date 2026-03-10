@@ -104,8 +104,8 @@ else:
             # st.write(f"**Status:** {incident.status}")
             st.write(f"**SLA time (minutes):** {incident.sla_no_of_hours:.2f}")  # minutes for testing purposes
             st.write(f"**Notified:** {'Yes' if incident.notified else 'No'}")
-            st.write(f"**Created at:** {incident.created_at}")
-            st.write(f"**Updated at:** {incident.updated_at}")
+            st.write(f"**Created at:** {incident.created_at} UTC")
+            st.write(f"**Updated at:** {incident.updated_at} UTC")
             col_a, col_b, col_c, col_d = st.columns(4)
             with col_a:
                 if st.button("View", key=f"view_{incident.id}"):
@@ -176,8 +176,8 @@ if st.session_state["selected_incident_id"]:
         st.sidebar.write(f"**SLA time (minutes):** {incident.sla_no_of_hours:.2f}")  # minutes for testing purposes
         st.sidebar.write(f"**Recipient email:** {incident.email}")
         st.sidebar.write(f"**Notified:** {'Yes' if incident.notified else 'No'}")
-        st.sidebar.write(f"**Created at:** {incident.created_at}")
-        st.sidebar.write(f"**Updated at:** {incident.updated_at}")
+        st.sidebar.write(f"**Created at:** {incident.created_at} UTC")
+        st.sidebar.write(f"**Updated at:** {incident.updated_at} UTC")
         if incident.status != "resolved":
             sidebar_solution_key = f"sidebar_solution_input_{incident.id}"
             if f"sidebar_show_solution_{incident.id}" not in st.session_state:
