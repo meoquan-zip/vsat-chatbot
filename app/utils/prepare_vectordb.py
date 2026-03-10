@@ -211,6 +211,9 @@ def load_text_from_docx_file(filepath: str) -> List[Document]:
             text_list.append(para_text)
     
     full_text = "\n\n".join(text_list)
+    spire_watermark = "Evaluation Warning: The document was created with Spire.Doc for Python."
+    full_text = full_text.replace(spire_watermark, "").strip()
+
     return [Document(
         page_content=full_text,
         metadata={
