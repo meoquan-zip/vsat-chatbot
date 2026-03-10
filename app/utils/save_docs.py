@@ -1,5 +1,6 @@
 import os
 import shutil
+from datetime import datetime, timezone
 
 import streamlit as st
 from jinja2 import Template
@@ -157,6 +158,7 @@ def add_resolved_incident_to_vectordb(
             "source": incident_id,
             "filename": incident_id,
             "img_list": "",
+            "added_at": datetime.now(tz=timezone.utc).isoformat(),
         }
     )
 

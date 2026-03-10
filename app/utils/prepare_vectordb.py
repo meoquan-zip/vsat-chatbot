@@ -5,6 +5,7 @@ import re
 import shutil
 import uuid
 from collections import defaultdict
+from datetime import datetime, timezone
 from typing import List, Tuple
 
 import fitz  # PyMuPDF for PDF image extraction
@@ -303,6 +304,7 @@ def extract_text(file_list: List[str], docs_dir: str = DEFAULT_DOCS_DIR):
     for d in docs:
         meta = d.metadata or {}
         meta.setdefault("img_list", "")
+        meta.setdefault("added_at", datetime.now(tz=timezone.utc).isoformat())
         if "filename" not in meta and meta.get("source"):
             meta["filename"] = os.path.basename(meta["source"])
         d.metadata = meta

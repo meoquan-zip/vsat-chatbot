@@ -168,4 +168,5 @@ users/
 config/
 data/
 drafts/
+logs/
 rm_cmt.ipynb

@@ -157,7 +157,7 @@ def _chat_response_streaming(prompt: str,
         ("human", "{input}")
     ])
     doc_prompt = PromptTemplate.from_template(
-        "Source: {filename}\nImages available: {img_list}\nContent:\n{page_content}"
+        "Source: {filename}\nAdded at: {added_at}\nImages available: {img_list}\nContent:\n{page_content}"
     )
 
     chain = create_stuff_documents_chain(
@@ -186,6 +186,25 @@ def _chat_response_streaming(prompt: str,
                     "path": path,
                     "source": filename,
                 }
+
+    # Debug: view rendered system instruction with context
+    if os.getenv("DEBUG_MODE") == "TRUE":
+        try:
+            rendered_context = "\n\n".join(
+                doc_prompt.format(
+                    filename=(doc.metadata or {}).get("filename", ""),
+                    added_at=(doc.metadata or {}).get("added_at", ""),
+                    img_list=(doc.metadata or {}).get("img_list", ""),
+                    page_content=doc.page_content,
+                )
+                for doc in retrieved_docs
+            )
+            full_system_instruction = system_instruction.replace("{context}", rendered_context)
+            with open("./logs/eg_system_prompt.txt", "a", encoding="utf-8") as f:
+                f.write(full_system_instruction)
+                f.write("\n\n" + ("=" * 120) + "\n\n")
+        except Exception:
+            pass
 
     # Create a new AI chat bubble and stream the response
     final_response = ""
